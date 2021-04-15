@@ -4,6 +4,8 @@ import threading
 class Light(object):
     """
     Driver for the MCLS Schott light sources
+    Warning: This is for the MCLS series, it is not KL protocol version 2.0 used on KL 2500 LED 
+    However, MCLS lightsources can be controlled with KL protocol version 2.0
     """
     def __init__(self, port):
         """
@@ -48,9 +50,9 @@ class Light(object):
         command : string
             command to be written in the controller.
         """
-        AA = '&'
-        CR = "\r"
-        input_bytes = bytes(AA + command + CR, 'ascii')
+        start = '&'
+        terminator = "\r"
+        input_bytes = bytes(start + command + terminator, 'ascii')
         self.ser.write(input_bytes)
 
     def query(self, string):
@@ -97,4 +99,72 @@ class Light(object):
         if 0<e<=1:
             self.intensity = e
             X = hex(int(e*255))
-            self.write('I' + X)
+            answer = self.query('I' + X)
+            return answer      
+    
+    @property
+    def intensity(self):
+        """
+        LED intensity 
+        """
+        answer = self.query('I?')
+        hexa_value = answer[-2]   + answer[-1]   
+        intensity = int(hexa_value, 16)/255                 
+        return intensity     
+    
+    @property
+    def precise_intensity(self):
+        """
+        LED precise intensity 
+        """
+        answer = self.query('IP?')
+        hexa_value = answer[-3] + answer[-2] + answer[-1]   
+        intensity = int(hexa_value, 16)
+        if intensity > 2047: 
+            intensity = 2047                 
+        return intensity/2047     
+    
+    @property 
+    def product_name(self): 
+        answer = self.query('Q')
+        return answer[1:]
+    
+    @property 
+    def serial_number(self): 
+        answer = self.query('Z$')
+        return answer
+    
+    @property 
+    def model_number(self): 
+        answer = self.query('ZM$')
+        return answer
+    
+    @property 
+    def control_source(self): 
+        answer = self.query('M?')
+        if int(answer[-1])==0: 
+            control = 'Front panel'
+        if int(answer[-1])==1: 
+            control = 'Rear analog control'
+        if int(answer[-1])==2: 
+            control = 'RS232 port'
+        if int(answer[-1])==4: 
+            control = 'USB port'
+        if int(answer[-1])==7: 
+            control = None
+        return control
+    
+    @property 
+    def control_lockout(self): 
+        answer = self.query('K?')
+        if int(answer[-1])==0: 
+            control = 'all controls enabled'
+        if int(answer[-1])==1: 
+            control = 'front knob and switch disabled'
+        if int(answer[-1])==2: 
+            control = 'analog input disabled'
+        if int(answer[-1])==3: 
+            control = 'front knob, switch and analog input disabled'
+        return control
+
+    
