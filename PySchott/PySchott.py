@@ -1,6 +1,7 @@
 import serial
 import threading
 import numpy as np
+import serial.tools.list_ports as list_ports
 
 class Light(object):
     """
@@ -14,7 +15,7 @@ class Light(object):
     timeout = 0.1
     parity = serial.PARITY_NONE
     
-    def __init__(self, port):
+    def __init__(self, port = None):
         """
         Light source object creator
 
@@ -24,6 +25,10 @@ class Light(object):
             port used to establish the serial communication
             for windows users it will be 'COMX' with X being an integer
         """
+        if port: 
+            self.connect(port)
+            
+    def connect(self, port): 
         self.lock = threading.Lock()
         self.ser = serial.Serial(port=port,
                                 baudrate=self.baudrate,
@@ -32,7 +37,6 @@ class Light(object):
                                 timeout=self.timeout,
                                 parity=self.parity,
                                 )
-
 
     def read(self):
         """
@@ -87,7 +91,7 @@ class MCLS_Light(Light):
     However, MCLS lightsources can be controlled with KL protocol version 2.0
     See class KL_Light for KL series lightsources 
     """
-    def __init__(self, port):
+    def __init__(self, port = None):
         """
         Light source object creator
 
@@ -101,7 +105,29 @@ class MCLS_Light(Light):
         super().__init__(port)
         self.start = '&'
         self.terminator = '\r'
-  
+        if not port: 
+            self.autoconnect()        
+        
+    def autoconnect(self): 
+        a = list_ports.comports()
+        for x in a: 
+            if x.hwid[:3] == 'USB': 
+                try: 
+                    self.connect(x.device)
+                    print('product', self.product_name)
+                    assert self.product_name != None
+                    print('connected')
+                    break
+                   
+                        
+                    
+                except: 
+                    print('no connected light')
+            else: 
+                print('no usb device')
+                    
+        
+        
     def set_on(self):
         """
         Enable LED output
@@ -401,7 +427,10 @@ class MCLS_Light(Light):
 
         """
         answer = self.query('Q')
-        name = answer[2:]
+        if len(answer)>2: 
+            name = answer[2:]
+        else: 
+            name = None
         return name
     
     @property 
@@ -448,9 +477,6 @@ class MCLS_Light(Light):
         answer = self.query('ZM')
         model = answer[3:]
         return model 
-    
-    
-    
     
 class KL_Light(object):
     """
