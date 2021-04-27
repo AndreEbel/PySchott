@@ -11,7 +11,7 @@ def LightControl(port):
     Parameters
     ----------
     port : string
-        port used to establish the serial communication with the pyrometer
+        port used to establish the serial communication with the light source
     """
 
     app = QtCore.QCoreApplication.instance()
