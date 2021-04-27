@@ -7,6 +7,7 @@ class Light(object):
     """
     General Light class with basic functions to communicate with the controller 
     """
+    ser = None
     start = None
     terminator = None
     baudrate = 9600
@@ -84,6 +85,11 @@ class Light(object):
           answer = self.read()
           return answer 
       
+    def __del__(self):
+        if self.ser:
+            self.ser.close()
+            print('serial connection off')
+      
 class MCLS_Light(Light):
     """
     Driver for the MCLS Schott light sources
@@ -91,7 +97,7 @@ class MCLS_Light(Light):
     However, MCLS lightsources can be controlled with KL protocol version 2.0
     See class KL_Light for KL series lightsources 
     """
-    def __init__(self, port = None):
+    def __init__(self, port = None, verbose = True):
         """
         Light source object creator
 
@@ -106,16 +112,20 @@ class MCLS_Light(Light):
         self.start = '&'
         self.terminator = '\r'
         if not port: 
-            self.autoconnect()        
+            self.autoconnect(verbose)        
         
-    def autoconnect(self): 
+    def autoconnect(self, verbose): 
         a = list_ports.comports()
+        if verbose: 
+            print(a)
         for x in a: 
             if x.hwid[:3] == 'USB': 
+                if verbose: 
+                    print(x.description)
                 try: 
                     self.connect(x.device)
                     print('product', self.product_name)
-                    assert self.product_name != None
+                    assert self.product_name != None                
                     print('connected')
                     break
                    
