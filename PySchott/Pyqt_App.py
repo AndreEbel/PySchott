@@ -3,8 +3,8 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore
 import sys
 
-from .PySchott import Light     
-def LightControl(port):
+from .PySchott import MCLS_Light     
+def LightControl(port=None):
     """
     basic control of the the light source and its intensity
 
@@ -17,7 +17,7 @@ def LightControl(port):
     app = QtCore.QCoreApplication.instance()
     if app is None:
         app = QApplication(sys.argv)
-    light = Light(port)
+    light = MCLS_Light(port)
     a = LightWidget(light)
     a.show()
     app.exec_()
