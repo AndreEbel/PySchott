@@ -21,11 +21,11 @@ class LightWidget(QWidget):
         self.intensity_input = QLineEdit()
         self.intensity_input.setValidator(QDoubleValidator(decimals = 2, 
                                                             notation=QtGui.QDoubleValidator.StandardNotation))
-        self.instensity_input.setMaxLength(2)
+        self.intensity_input.setMaxLength(3)
         self.intensity_input.setAlignment(Qt.AlignRight)
         
         # intensity buton 
-        self.intensity_button = QPushButton('Set intensity (0-1)',self)
+        self.intensity_button = QPushButton('Set intensity (0-100)',self)
         self.intensity_button.clicked.connect(self.ClickSetIntensity)
         
         # add widgets to vbox layout 
@@ -50,15 +50,15 @@ class LightWidget(QWidget):
     
     # Activates when Start/Stop video button is clicked to Stop (ss_video)
     def ClickOff(self):
-        self.onoff_button.clicked.disconnect(self.ClickDisconnect)      
+        self.onoff_button.clicked.disconnect(self.ClickOff)      
         self.light.set_off()
         self.onoff_button.setText('Set On')
         self.onoff_button.clicked.connect(self.ClickOn)
     
     def ClickSetIntensity(self):
         r = self.intensity_input.text()
-        e = float(r.replace(',', '.'))
-        self.light.set_intensity(e)
+        e = float(r)
+        self.light.set_intensity(e/100)
         if self.verbose: 
             print(self.light.intensity)   
   
