@@ -4,7 +4,7 @@ from PyQt5.QtGui import QDoubleValidator
 from PyQt5.QtCore import Qt
 
         
-class LightWidget(QWidget):
+class LightWidget_base(QWidget):
     def __init__(self, light, verbose = True):
         super().__init__()
         self.verbose = verbose
@@ -44,13 +44,14 @@ class LightWidget(QWidget):
             e = float(r.replace(',', '.'))
             self.light.set_intensity(e)
         else: 
-            self.light.set_intensity(0.1)
+            self.light.set_intensity(0.05)
+            self.intensity_input.setText('5')
         self.onoff_button.setText('Set Off')
         self.onoff_button.clicked.connect(self.ClickOff)
     
     # Activates when Start/Stop video button is clicked to Stop (ss_video)
     def ClickOff(self):
-        self.onoff_button.clicked.disconnect(self.ClickOff)      
+        self.onoff_button.clicked.disconnect(self.ClickOff)  
         self.light.set_off()
         self.onoff_button.setText('Set On')
         self.onoff_button.clicked.connect(self.ClickOn)
@@ -61,9 +62,13 @@ class LightWidget(QWidget):
         self.light.set_intensity(e/100)
         if self.verbose: 
             print(self.light.intensity)   
-  
+
+class LightWidget(LightWidget_base):
+    def __init__(self, light, verbose = True): 
+        super().__init__(light, verbose)
     def closeEvent(self, event):
         if self.light.on: 
+            self.light.set_intensity(0.05)  
             self.light.set_off()
         event.accept()
         
